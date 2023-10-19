@@ -6,9 +6,12 @@ const cors = require('cors'); // Importa el paquete 'cors'
 const app = express();
 const server = http.createServer(app);
 
+app.use(cors({
+    origin: ['http://10.1.10.202:5173', 'http://localhost:5173']
+}));
 const io = socketIo(server, {
     cors: {
-        origin: "http://localhost:5173",
+        origin: ['http://10.1.10.202:5173', 'http://localhost:5173'],
         methods: ["GET", "POST"]
     }
 });
@@ -38,7 +41,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('createRoom', (name) => {
-        const room = { name, users: [socket.id], id: rooms.length, createdBy: connectedUsers[socket.id] };
+        const room = { name, users: [], id: rooms.length, createdBy: connectedUsers[socket.id] };
         rooms.push(room);
         console.log(`Sala creada por ${connectedUsers[socket.id]}: ${room}`);
         io.emit('createRoom', room);
@@ -46,10 +49,13 @@ io.on('connection', (socket) => {
     });
 
     socket.on('joinRoom', (id) => {
-        if(!rooms[id].users.includes(socket.id)) {
+        if(!rooms[id].users.map(user => user.id).includes(socket.id)) {
             rooms[id].users.push({ id: socket.id, name: connectedUsers[socket.id] });
             console.log(`${connectedUsers[socket.id]} se ha unido a la sala ${rooms[id]}`);
         }
+        
+        socket.join("room"+id);
+        io.to("room"+id).emit('playerJoined', rooms[id]);
         io.to(socket.id).emit('joinedRoom', rooms[id]);
     });
 
