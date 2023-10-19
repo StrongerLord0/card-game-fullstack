@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import './App.css'
-import { Login } from './components/login';
+import { Login } from './components/Login';
 import io from 'socket.io-client';
 import Rooms from './components/Rooms';
 import { Lobby } from './components/Lobby';
@@ -14,7 +14,7 @@ const App = () => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    setSocket(io('http://localhost:3001')); // Reemplaza con la URL de tu servidor
+    setSocket(io('http://10.1.10.202:3001')); // Reemplaza con la URL de tu servidor
   }, []);
 
   return (

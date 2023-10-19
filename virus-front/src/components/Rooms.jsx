@@ -1,16 +1,30 @@
 import { useEffect, useState } from 'react'
+import { useFetch } from '../hooks/useFetch';
 
 const Rooms = ({ socket, user, setJoined }) => {
   // const [message, setMessage] = useState('');
   // const [messages, setMessages] = useState([]);
   const [roomName, setRoomName] = useState("");
   const [rooms, setRooms] = useState([]);
+  const { data, isLoading, hasError } = useFetch("http://10.1.10.202:3001/rooms")
   // const handleSendMessage = () => {
   //   socket.emit('chat message', message);
   //   setMessage('');
   // };
 
+  console.log(data);
+
   useEffect(() => {
+    if(isLoading) return;
+
+    setRooms(data);
+
+  }, [isLoading])
+
+  useEffect(() => {
+
+    
+    
     socket.on('createRoom', (room) => {
       const { name, id, createdBy } = room;
       console.log(name, id, createdBy);
@@ -21,8 +35,12 @@ const Rooms = ({ socket, user, setJoined }) => {
       console.log("Has creado la sala:", room);
       joinRoom(room.id);
     });
-  
-    socket.on('joinedRoom', (room) => { user.room = room });
+    
+    socket.on('joinedRoom', (room) => { 
+      console.log("Te has unido correctamente");
+      user.room = room;
+      setJoined(true);
+    });
     
   },[]);
 
@@ -35,7 +53,6 @@ const Rooms = ({ socket, user, setJoined }) => {
 
   const joinRoom = (id) => {
     socket.emit('joinRoom', id);
-    setJoined(true);
   }
 
   const handleJoinRoom = (event) => {

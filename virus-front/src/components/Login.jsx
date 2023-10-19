@@ -12,7 +12,7 @@ export const Login = ({ socket, setLoged, setUser }) => {
 
     return (
         <div>
-            <h1>VIRUS!</h1>
+            <h1>Roña</h1>
             <input 
                 type="text" 
                 placeholder="Nombre" 
