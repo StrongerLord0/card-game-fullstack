@@ -150,32 +150,41 @@ io.on('connection', (socket) => {
         
         const room = rooms.find(room => !!room.users.find(user => user.id === socket.id));
         const user = room.users.find(user => user.id === socket.id);
-        const otherUsers = room.user.find(user => user.id !== socket.id);
 
-        if(destination == 'myCards' && ownRules(playedCard, user)) {
+        if (destination === 'myCards' && rules(playedCard, user)) {
             user.playedDeck.push(playedCard);
+            const deleted = user.deck.splice(user.deck.findIndex(card => card.id === playedCard.id), 1);
+            console.log("deleted:", deleted);
+            const randomCard = room.deck[Math.floor(Math.random() * room.deck.length)];
+            user.deck.push(randomCard);
+            room.deck.splice(room.deck.findIndex(card => card.id === randomCard.id), 1);
+            const turnIndex = room.users.findIndex(user => user.id === socket.id);
+            const turn = turnIndex < room.users.length - 1 ? room.users[turnIndex + 1].id : room.users[0].id;
+            io.to("room" + room.id).emit('cardThrown', playedCard, destination, turn, room.users);
+            io.to(user.id).emit('turnEnded', user, room);
+            checkGame(playedCard, user);
         }
-        else if (destination == '' && otherRules(playedCard, otherUsers)){
-            console.log("Movimiento inválido");
+        
+        if (destination === 'basurero') {
+            // Agrega la carta a jugar al mazo disponible (deck)
+            room.deck.push(playedCard);
+            // Quita la carta del dueño
+            const deleted = user.deck.splice(user.deck.findIndex(card => card.id === playedCard.id), 1);
+            console.log("deleted:", deleted);
+            // Agrega una carta aleatoria del mazo disponible al dueño
+            const randomCardIndex = Math.floor(Math.random() * room.deck.length);
+            const randomCard = room.deck.splice(randomCardIndex, 1)[0];
+            user.deck.push(randomCard);
+    
+            const turnIndex = room.users.findIndex(user => user.id === socket.id);
+            const turn = turnIndex < room.users.length - 1 ? room.users[turnIndex + 1].id : room.users[0].id;
+            io.to("room" + room.id).emit('cardThrown', playedCard, destination, turn, room.users);
+            io.to(user.id).emit('turnEnded', user, room);
         }
 
-        const deleted = user.deck.splice(user.deck.findIndex(card => card.id == playedCard.id), 1);
-        console.log("deleted:",deleted);
-
-        const randomCard = room.deck[Math.floor(Math.random() * room.deck.length)];
-
-        user.deck.push(randomCard);
-        room.deck.splice(room.deck.findIndex(card => card.id == randomCard.id), 1);
-
-        const turnIndex = room.users.findIndex(user => user.id == socket.id);
-
-        const turn = turnIndex < room.users.length - 1 ? room.users[turnIndex + 1].id : room.users[0].id;
-
-        io.to("room" + room.id).emit('cardThrown', playedCard, destination, turn, room.users);
-        io.to(user.id).emit('turnEnded', user, room);
     });
 
-    function ownRules(playedCard, user) {
+    function rules(playedCard, user) {
         if (playedCard.tipo === 'órgano') {
             // Verificar que el usuario no tenga la carta en su playedDeck
             if (user.playedDeck.find(card => (card.tipo === playedCard.tipo) && (card.color === playedCard.color))) {
@@ -188,46 +197,23 @@ io.on('connection', (socket) => {
             const hasMatchingOrgan = user.playedDeck.some(card => card.tipo === 'órgano' && card.color === playedCard.color);
             
             // Verificar la cantidad máxima de cartas del mismo tipo (medicina o virus)
-            const maxCardCount = (playedCard.tipo === 'medicina') ? 2 : 2;
-    
-            // Contar las cartas del mismo tipo (medicina o virus) en el playedDeck del usuario
-            const sameTypeCount = user.playedDeck.filter(card => card.tipo === playedCard.tipo).length;
-    
-            if (hasMatchingOrgan && sameTypeCount < maxCardCount) {
+            const hasTwoCardsOfSameColor = user.playedDeck.filter(card => (card.color === playedCard.color) && (card.tipo === playedCard.tipo)).length < 2 ? true : false;
+
+            if (hasMatchingOrgan && hasTwoCardsOfSameColor) {
                 // Movimiento válido, el usuario tiene un órgano del mismo color y no excede la cantidad máxima de cartas del mismo tipo.
                 return true;
             }
         }
-    
+        //Logica al emplear un tratamiento, aqui va el desmadre :O
+
         return false; // En cualquier otro caso, el movimiento es inválido.
     }
+    
+    //Verificación del juego y estatus, si hay un virus y un medicamento en el mismo deck, se eliminan entre sí.
+    //Valida cuando alguien ganó en el juego.
+    
+    function checkGame(playedCard, user){
 
-    function otherRules(playedCard, otherUsers) {
-        otherUsers.forEach(user => {
-            if (playedCard.tipo === 'órgano') {
-                // Verificar que el usuario no tenga la carta en su playedDeck
-                if (user.playedDeck.find(card => (card.tipo === playedCard.tipo) && (card.color === playedCard.color))) {
-                    return false; // El usuario ya tiene esta carta, movimiento inválido.
-                } else {
-                    return true; // Movimiento válido, el usuario no tiene esta carta.
-                }
-            } else if (playedCard.tipo === 'medicina' || playedCard.tipo === 'virus') {
-                // Verificar que el usuario tenga un órgano del mismo color
-                const hasMatchingOrgan = user.playedDeck.some(card => card.tipo === 'órgano' && card.color === playedCard.color);
-                
-                // Verificar la cantidad máxima de cartas del mismo tipo (medicina o virus)
-                const maxCardCount = (playedCard.tipo === 'medicina') ? 2 : 2;
-        
-                // Contar las cartas del mismo tipo (medicina o virus) en el playedDeck del usuario
-                const sameTypeCount = user.playedDeck.filter(card => card.tipo === playedCard.tipo).length;
-        
-                if (hasMatchingOrgan && sameTypeCount < maxCardCount) {
-                    // Movimiento válido, el usuario tiene un órgano del mismo color y no excede la cantidad máxima de cartas del mismo tipo.
-                    return true;
-                }
-            }
-            return false; // En cualquier otro caso, el movimiento es inválido.
-        });
     }
 });
 
