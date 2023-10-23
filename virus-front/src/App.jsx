@@ -24,7 +24,7 @@ const App = () => {
       {!loged && <Login socket={socket} setLoged={setLoged} setUser={setUser} />}
       {loged && !joined && <Rooms socket={socket} user={user} setJoined={setJoined} />}
       {loged && joined && !started && <Lobby socket={socket} user={user} setJoined={setJoined} setStarted = {setStarted} />}
-      {loged && joined && started && <Game socket={socket} user={user} setJoined={setJoined} setStarted = {setStarted}/>}
+      {loged && joined && started && <Game socket={socket} user={user} setUser={setUser} setJoined={setJoined} setStarted = {setStarted}/>}
 
     </>
 

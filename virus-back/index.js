@@ -87,9 +87,10 @@ io.on('connection', (socket) => {
             rooms[id].users.push({
                 id: socket.id,
                 name: connectedUsers[socket.id],
+                playedDeck: [],
+                deck: []
             });
-            console.log(`${connectedUsers[socket.id]} se ha unido a la sala ${JSON.stringify(rooms[id])}`);
-            console.log(rooms[id].users);
+            console.log(`${connectedUsers[socket.id]} se ha unido a la sala ${(rooms[id].id)}`);
         }
 
         socket.join("room" + id);
@@ -105,10 +106,12 @@ io.on('connection', (socket) => {
 
     socket.on('startGame', (user) => {
         const { room } = user;
+        rooms[room.id].deck = [...mazoVirus];
 
         const usersInRoom = io.sockets.adapter.rooms.get("room" + room.id);
 
         console.log(rooms[room.id]);
+        rooms[room.id].currentTurnId = socket.id;
 
         if (room.createdBy === rooms[room.id].createdBy) {
             usersInRoom.forEach(socket => {
@@ -116,15 +119,17 @@ io.on('connection', (socket) => {
                 const deck = [];
 
                 for (let i = 0; i < 3; i++) {
-                    const randomCardIndex = Math.floor(Math.random() * mazoVirus.length);
-                    const randomCard = mazoVirus.splice(randomCardIndex, 1)[0]; // Elimina la carta del mazoVirus
+                    const randomCardIndex = Math.floor(Math.random() * rooms[room.id].deck.length);
+                    const randomCard = rooms[room.id].deck.splice(randomCardIndex, 1)[0]; // Elimina la carta del mazoVirus
                     deck.push(randomCard); // Agrega la carta al deck del jugador
                 }
 
-                console.table(mazoVirus);
+                console.table(rooms[room.id].deck);
                 console.table(deck);
                 io.to(socket).emit('gameStarted', deck);
+            
                 rooms[room.id].users.find(user => user.id === socket).deck = deck;
+                rooms[room.id].users.find(user => user.id === socket).playedDeck = [];
             });
         }
         console.log("La partida en la sala " + room.id + " ha comenzado:", JSON.stringify(rooms[room.id]));
@@ -134,6 +139,37 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log(`Usuario desconectado: ${socket.id}`);
     });
+
+    socket.on('throwCard', (playedCard, destination) => {
+        //Eliminar la carta de su deck
+        //Darle una nueva carta al jugador del mazo de la room
+        //Avisarle a la raza del movimiento
+        //Asignar el turno al siguiente
+        
+        console.log(playedCard, destination);
+        
+        const room = rooms.find(room => !!room.users.find(user => user.id === socket.id));
+        const user = room.users.find(user => user.id === socket.id);
+
+        if(destination == 'myCards') {
+            user.playedDeck.push(playedCard);
+        }
+
+        const deleted = user.deck.splice(user.deck.findIndex(card => card.id == playedCard.id), 1);
+        console.log("deleted:",deleted);
+
+        const randomCard = room.deck[Math.floor(Math.random() * room.deck.length)];
+
+        user.deck.push(randomCard);
+        room.deck.splice(room.deck.findIndex(card => card.id == randomCard.id), 1);
+
+        const turnIndex = room.users.findIndex(user => user.id == socket.id);
+
+        const turn = turnIndex < room.users.length - 1 ? room.users[turnIndex + 1].id : room.users[0].id;
+
+        io.to("room" + room.id).emit('cardThrown', playedCard, destination, turn, room.users);
+        io.to(user.id).emit('turnEnded', user, room);
+    })
 });
 
 io.on('error', (error) => {
