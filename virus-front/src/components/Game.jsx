@@ -41,27 +41,40 @@ export const Game = ({ socket, user, setUser }) => {
     socket.emit('throwCard', playedCard, destination);
   }
 
-
   return (
     <div>
-      <ul>
-        <div
-          id="basurero"
-          style={{
-            border: "solid 1px black",
-            margin: "1rem",
-            cursor: "pointer"
-          }}
-          onClick={handleThrow}
-        >
-          <h3>Basurero</h3>
-        </div>
+      <div
+        id="basurero"
+        style={{
+          border: "solid 1px black",
+          margin: "1rem",
+          cursor: "pointer",
+          width: "10rem",
+          height: "10rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        onClick={handleThrow}
+      >
+        <h3>Basurero</h3>
+      </div>
+      <div
+        style={{
+          position: "fixed",
+          bottom: "0",
+          left: "0",
+          width: "calc(100% - 2rem)",
+          margin: "1rem",
+        }}
+      >
         <div
           id="myCards"
           style={{
             border: "solid 1px green",
             margin: "1rem",
-            cursor: "pointer"
+            cursor: "pointer",
+            width: "calc(100% - 2rem)",
           }}
           onClick={handleThrow}
         >
@@ -81,7 +94,6 @@ export const Game = ({ socket, user, setUser }) => {
             </button>
           )}
         </div>
-
         <div>
           {deck.map((card, index) =>
             <button
@@ -99,44 +111,50 @@ export const Game = ({ socket, user, setUser }) => {
           )}
 
         </div>
-        <div>
-          {
-            users.filter(player => player.id != socket.id).map((user, index) => {
-              return (
-                <div>
-                  <div
-                    id={socket.id}
+      </div>
+
+      <div>
+        {
+          users.filter(player => player.id != socket.id).map((user, index) => {
+            return (
+              <div
+                style={{
+                  border: "solid 1px red",
+                  margin: "1rem",
+                }}
+              >
+                <div
+                  id={socket.id}
+                  style={{
+                    border: "solid 1px red",
+                    margin: "1rem",
+                    cursor: "pointer"
+                  }}
+                  onClick={handleThrow}
+                >
+                  <p>PlayDeck</p>
+                </div>
+                {user.playedDeck.map((card, index) =>
+                  <button
+                    id={card.id}
+                    key={index}
                     style={{
-                      border: "solid 1px red",
-                      margin: "1rem",
-                      cursor: "pointer"
+                      backgroundColor: `${card.color}`,
+                      color: "#000000",
                     }}
+                    disabled={!yourTurn}
                     onClick={handleThrow}
                   >
-                    <p>Cartas</p>
-                    {user.playedDeck.map((card, index) =>
-                      <button
-                        id={card.id}
-                        key={index}
-                        style={{
-                          backgroundColor: `${card.color}`,
-                          color: "#000000",
-                        }}
-                        disabled={!yourTurn}
-                        onClick={handlePlayedCard}
-                      >
-                        {card.tipo}
-                      </button>
-                    )}
-                  </div>
-                  <b key={index}>{user.name}</b>
-                </div>
-              )
-            })
-          }
+                    {card.tipo}
+                  </button>
+                )}
+                <b key={index}>{user.name}</b>
+              </div>
+            )
+          })
+        }
 
-        </div>
-      </ul>
+      </div>
     </div>
 
   );

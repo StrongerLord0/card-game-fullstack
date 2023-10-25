@@ -40,11 +40,11 @@ const mazoVirus = [
     ...Array(4).fill({ id: generateUniqueID(), tipo: "medicina", color: "#0000FF" }),
     ...Array(4).fill({ id: generateUniqueID(), tipo: "medicina", color: "#FFFF00" }),
     ...Array(4).fill({ id: generateUniqueID(), tipo: "medicina", color: "#FFFFFF" }),
-    ...Array(3).fill({ id: generateUniqueID(), tipo: "tratamiento", nombre: "Trasplante" }),
-    ...Array(3).fill({ id: generateUniqueID(), tipo: "tratamiento", nombre: "Ladrón de órganos" }),
-    ...Array(2).fill({ id: generateUniqueID(), tipo: "tratamiento", nombre: "Contagio" }),
-    { id: generateUniqueID(), tipo: "tratamiento", nombre: "Guante de látex" },
-    { id: generateUniqueID(), tipo: "tratamiento", nombre: "Error médico" }
+    ...Array(3).fill({ id: generateUniqueID(), tipo: "tratamiento", nombre: "Trasplante", color: "#F000F0"  }),
+    ...Array(3).fill({ id: generateUniqueID(), tipo: "tratamiento", nombre: "Ladrón de órganos", color: "#F000F0"  }),
+    ...Array(2).fill({ id: generateUniqueID(), tipo: "tratamiento", nombre: "Contagio", color: "#F000F0"  }),
+    { id: generateUniqueID(), tipo: "tratamiento", nombre: "Guante de látex", color: "#F000F0"  },
+    { id: generateUniqueID(), tipo: "tratamiento", nombre: "Error médico", color: "#F000F0" },
 ];
 
 const connectedUsers = {};
@@ -127,7 +127,7 @@ io.on('connection', (socket) => {
                 console.table(rooms[room.id].deck);
                 console.table(deck);
                 io.to(socket).emit('gameStarted', deck);
-            
+
                 rooms[room.id].users.find(user => user.id === socket).deck = deck;
                 rooms[room.id].users.find(user => user.id === socket).playedDeck = [];
             });
@@ -145,9 +145,9 @@ io.on('connection', (socket) => {
         //Darle una nueva carta al jugador del mazo de la room
         //Avisarle a la raza del movimiento
         //Asignar el turno al siguiente
-        
+
         console.log(playedCard, destination);
-        
+
         const room = rooms.find(room => !!room.users.find(user => user.id === socket.id));
         const user = room.users.find(user => user.id === socket.id);
 
@@ -162,9 +162,9 @@ io.on('connection', (socket) => {
             const turn = turnIndex < room.users.length - 1 ? room.users[turnIndex + 1].id : room.users[0].id;
             io.to("room" + room.id).emit('cardThrown', playedCard, destination, turn, room.users);
             io.to(user.id).emit('turnEnded', user, room);
-            checkGame(playedCard, user);
+            checkGame(playedCard, user, room);
         }
-        
+
         if (destination === 'basurero') {
             // Agrega la carta a jugar al mazo disponible (deck)
             room.deck.push(playedCard);
@@ -175,7 +175,7 @@ io.on('connection', (socket) => {
             const randomCardIndex = Math.floor(Math.random() * room.deck.length);
             const randomCard = room.deck.splice(randomCardIndex, 1)[0];
             user.deck.push(randomCard);
-    
+
             const turnIndex = room.users.findIndex(user => user.id === socket.id);
             const turn = turnIndex < room.users.length - 1 ? room.users[turnIndex + 1].id : room.users[0].id;
             io.to("room" + room.id).emit('cardThrown', playedCard, destination, turn, room.users);
@@ -185,17 +185,14 @@ io.on('connection', (socket) => {
     });
 
     function rules(playedCard, user) {
-        if (playedCard.tipo === 'órgano') {
-            // Verificar que el usuario no tenga la carta en su playedDeck
-            if (user.playedDeck.find(card => (card.tipo === playedCard.tipo) && (card.color === playedCard.color))) {
-                return false; // El usuario ya tiene esta carta, movimiento inválido.
-            } else {
-                return true; // Movimiento válido, el usuario no tiene esta carta.
-            }
-        } else if (playedCard.tipo === 'medicina' || playedCard.tipo === 'virus') {
+        // Verificar que el usuario no tenga el órgano en su playedDeck
+        if (playedCard.tipo === 'órgano')
+            return !user.playedDeck.find(card => (card.tipo === playedCard.tipo) && (card.color === playedCard.color));
+
+        else if (playedCard.tipo === 'medicina' || playedCard.tipo === 'virus') {
             // Verificar que el usuario tenga un órgano del mismo color
             const hasMatchingOrgan = user.playedDeck.some(card => card.tipo === 'órgano' && card.color === playedCard.color);
-            
+
             // Verificar la cantidad máxima de cartas del mismo tipo (medicina o virus)
             const hasTwoCardsOfSameColor = user.playedDeck.filter(card => (card.color === playedCard.color) && (card.tipo === playedCard.tipo)).length < 2 ? true : false;
 
@@ -203,17 +200,32 @@ io.on('connection', (socket) => {
                 // Movimiento válido, el usuario tiene un órgano del mismo color y no excede la cantidad máxima de cartas del mismo tipo.
                 return true;
             }
+
         }
         //Logica al emplear un tratamiento, aqui va el desmadre :O
 
         return false; // En cualquier otro caso, el movimiento es inválido.
     }
-    
+
     //Verificación del juego y estatus, si hay un virus y un medicamento en el mismo deck, se eliminan entre sí.
     //Valida cuando alguien ganó en el juego.
-    
-    function checkGame(playedCard, user){
 
+    function checkGame(playedCard, user, room) {
+        // Verificar si el usuario tiene 4 órganos
+        if (user.playedDeck.filter(card => card.tipo === 'órgano').length === 4 && !user.playedDeck.some(card => card.tipo === 'virus')) {
+            // El usuario ganó el juego
+            io.to("room" + room.id).emit('gameEnded', user);
+            console.log(`${user.name} ha ganado el juego!`);
+        }
+
+        // //Eliminar virus y medicina del mismo color
+        // if(user.playedDeck.some(card => card.tipo === 'virus' && card.color === playedCard.color) && user.playedDeck.some(card => card.tipo === 'medicina' && card.color === playedCard.color)){
+        //     const virus = user.playedDeck.findIndex(card => card.tipo === 'virus' && card.color === playedCard.color);
+        //     const medicina = user.playedDeck.findIndex(card => card.tipo === 'medicina' && card.color === playedCard.color);
+        //     user.playedDeck.splice(virus, 1);
+        //     user.playedDeck.splice(medicina, 1);
+        //     console.log("Se eliminaron el virus y la medicina del mismo color");
+        // }
     }
 });
 
