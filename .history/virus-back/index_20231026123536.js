@@ -237,22 +237,6 @@ io.on('connection', (socket) => {
             });
         }
 
-        if(user.playedDeck.filter(card=> card.tipo === 'virus').map(card => card.color).length === 2){
-            const matchingCards = user.playedDeck.filter(card => card.tipo === "virus").map(card => card.color).filter(color => user.playedDeck.filter(card => card.tipo === "órgano").map(organo => organo.color).includes(color));
-            
-            matchingCards.forEach(color => {
-                const virusIndex = user.playedDeck.findIndex(card => card.tipo === "virus" && card.color === color);
-                // Elimina las cartas del mazo del jugador
-                const virusCard = user.playedDeck.splice(virusIndex, 1)[0];
-                
-                const organIndex = user.playedDeck.findIndex(card => card.tipo === "órgano" && card.color === color);
-                const organCard = user.playedDeck.splice(organIndex, 1)[0];
-        
-                // Añade las cartas al mazo de la sala
-                room.deck.push(virusCard, organCard);
-            });
-        }
-
 
         // //Eliminar virus y medicina del mismo color
         // if(user.playedDeck.some(card => card.tipo === 'virus' && card.color === playedCard.color) && user.playedDeck.some(card => card.tipo === 'medicina' && card.color === playedCard.color)){
