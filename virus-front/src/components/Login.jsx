@@ -1,26 +1,30 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import './Login.css';
+import logo from '../assets/roña.png';
+import 'animate.css';
+import { UserContext } from "../context/UserContext";
+import io from 'socket.io-client';
 
-export const Login = ({ socket, setLoged, setUser }) => {
-
-    const [username, setUsername] = useState('');
+export const Login = ({ setLoged }) => {
 
     const handleSetUsername = () => {
-        socket.emit('setUsername', username);
-        setUser({name: username})
         setLoged(true)
     }
 
+    const { setSocket } = useContext(UserContext);
+
+    useEffect(() => {
+        setSocket(io('http://localhost:3001')); // Reemplaza con la URL de tu servidor
+      }, []);
+
     return (
-        <div>
-            <h1>Roña</h1>
-            <input 
-                type="text" 
-                placeholder="Nombre" 
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-            />
-            <br />
-            <button onClick={handleSetUsername}>Entrar</button>
-        </div>
+        <>
+            <div className="home">
+                <img className="animate__animated animate__bounce" src={logo} alt="" />
+                <button className="primary animate__animated animate__jackInTheBox" onClick={handleSetUsername}>
+                    <p>Jugar</p>
+                </button>
+            </div>
+        </>
     )
 }

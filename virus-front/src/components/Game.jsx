@@ -1,12 +1,15 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { UserContext } from "../context/UserContext";
 
-export const Game = ({ socket, user, setUser }) => {
+export const Game = () => {
 
   const [yourTurn, setYourTurn] = useState(false);
   const [playedCard, setPlayedCard] = useState(null);
   const [deck, setDeck] = useState(user.deck);
   const [playedDeck, setPlayedDeck] = useState([]);
   const [users, setUsers] = useState(user.room.users);
+
+  const { user, setUser, socket } = useContext(UserContext);
 
   useEffect(() => {
     setYourTurn(user.room.createdBy == socket.id);
@@ -142,6 +145,7 @@ export const Game = ({ socket, user, setUser }) => {
                       backgroundColor: `${card.color}`,
                       color: "#000000",
                     }}
+                    className={index == 0 ? 'topPlayer' : ''}
                     disabled={!yourTurn}
                     onClick={handleThrow}
                   >
