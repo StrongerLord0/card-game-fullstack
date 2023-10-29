@@ -13,7 +13,7 @@ export const RoomLobby = ({ setStarted }) => {
     useEffect(() => {
         socket.on("playerJoined", (room) => {
             console.log("Alguien se unió");
-            setUser({ ...user, room });
+            setUser( user => ({ ...user, room }));
             setPlayers(user.room.users);
         });
 
@@ -22,15 +22,16 @@ export const RoomLobby = ({ setStarted }) => {
             setMessages(prevMessages => [...prevMessages, msg]);
         });
 
-        socket.on("gameStarted", (deck, room) => {
+        socket.on("gameStarted", (deck) => {
             console.log(deck);
-            setUser({ ...user, deck, room });
+            setUser((user) => ({ ...user, deck }));
             setStarted(true);
         });
     }, []);
 
     const handleSendMessage = () => {
         socket.emit("sendMessage", { message, room: user.room });
+        setMessage("");
     }
 
     const handlePlay = () => {

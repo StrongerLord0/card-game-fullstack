@@ -6,7 +6,7 @@ import { UserContext } from "../context/UserContext";
 import { RoomMenu } from './Rooms/RoomMenu';
 import { RoomLobby } from './Rooms/RoomLobby';
 
-export const Rooms = () => {
+export const Rooms = ({ setStarted }) => {
     const { user, setUser, socket } = useContext(UserContext);
 
     console.log(user);
@@ -61,7 +61,7 @@ export const Rooms = () => {
         <>
             <div className="card animate__animated animate__bounceIn" style={{ width: '60%' }}>
                 <img className='doodles' src={doodles} alt="" />
-                {joined ? <RoomLobby socket={socket} setJoined={setJoined} /> :
+                {joined ? <RoomLobby socket={socket} setJoined={setJoined} setStarted={setStarted} /> :
                     <>
                         <div className='inCard'>
                             <p style={{

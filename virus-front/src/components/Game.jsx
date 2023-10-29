@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../context/UserContext";
 
 export const Game = () => {
+  const { user, setUser, socket } = useContext(UserContext);
 
   const [yourTurn, setYourTurn] = useState(false);
   const [playedCard, setPlayedCard] = useState(null);
@@ -9,7 +10,6 @@ export const Game = () => {
   const [playedDeck, setPlayedDeck] = useState([]);
   const [users, setUsers] = useState(user.room.users);
 
-  const { user, setUser, socket } = useContext(UserContext);
 
   useEffect(() => {
     setYourTurn(user.room.createdBy == socket.id);
@@ -45,23 +45,8 @@ export const Game = () => {
   }
 
   return (
-    <div>
-      <div
-        id="basurero"
-        style={{
-          border: "solid 1px black",
-          margin: "1rem",
-          cursor: "pointer",
-          width: "10rem",
-          height: "10rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        onClick={handleThrow}
-      >
-        <h3>Basurero</h3>
-      </div>
+    <>
+
       <div
         style={{
           position: "fixed",
@@ -116,50 +101,146 @@ export const Game = () => {
         </div>
       </div>
 
-      <div>
-        {
-          users.filter(player => player.id != socket.id).map((user, index) => {
-            return (
-              <div
-                style={{
-                  border: "solid 1px red",
-                  margin: "1rem",
-                }}
-              >
-                <div
-                  id={socket.id}
-                  style={{
-                    border: "solid 1px red",
-                    margin: "1rem",
-                    cursor: "pointer"
-                  }}
-                  onClick={handleThrow}
-                >
-                  <p>PlayDeck</p>
-                </div>
-                {user.playedDeck.map((card, index) =>
-                  <button
-                    id={card.id}
-                    key={index}
+      <div
+        style={{
+          display: "flex",
+          width: "100%",
+          height: "100%",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <div>
+          {
+            users.filter(player => player.id != socket.id).map((user, index) => {
+              const firstPlayer = index == 0 ? {
+                position: "fixed",
+                top: "0",
+                left: "50%",
+                right: "50%",
+                transform: "translate(-50%, 0)",
+                width: 'fit-content'
+              } : {};
+              if (index % 2 != 0) {
+                return (
+                  <div
                     style={{
-                      backgroundColor: `${card.color}`,
-                      color: "#000000",
+                      border: "solid 1px red",
+                      margin: "1rem",
+                      ...firstPlayer,
                     }}
-                    className={index == 0 ? 'topPlayer' : ''}
-                    disabled={!yourTurn}
-                    onClick={handleThrow}
                   >
-                    {card.tipo}
-                  </button>
-                )}
-                <b key={index}>{user.name}</b>
-              </div>
-            )
-          })
-        }
+                    <div
+                      id={socket.id}
+                      style={{
+                        border: "solid 1px red",
+                        margin: "1rem",
+                        cursor: "pointer",
+                      }}
+                      onClick={handleThrow}
+                    >
+                      <p>PlayDeck</p>
+                    </div>
+                    {user.playedDeck.map((card, index) =>
+                      <button
+                        id={card.id}
+                        key={index}
+                        style={{
+                          backgroundColor: `${card.color}`,
+                          color: "#FFF",
+                        }}
+                        className={index == 0 ? 'topPlayer' : ''}
+                        disabled={!yourTurn}
+                        onClick={handleThrow}
+                      >
+                        {card.tipo}
+                      </button>
+                    )}
+                    <b key={index}>{user.name}</b>
+                  </div>
+                )
+              }
+              return;
+            })
+          }
+        </div>
+        <div
+          id="basurero"
+          style={{
+            border: "solid 1px black",
+            margin: "1rem",
+            cursor: "pointer",
+            width: "10rem",
+            height: "10rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onClick={handleThrow}
+        >
+          <h3>Basurero</h3>
+        </div>
+        <div
+          style={{
+
+          }}
+        >
+          {
+            users.filter(player => player.id != socket.id).map((user, index) => {
+              const firstPlayer = index == 0 ? {
+                position: "fixed",
+                top: "0",
+                left: "50%",
+                right: "50%",
+                transform: "translate(-50%, 0)",
+                width: 'fit-content'
+              } : {};
+              if (index % 2 == 0) {
+                return (
+                  <div
+                    style={{
+                      border: "solid 1px red",
+                      margin: "1rem",
+                      ...firstPlayer,
+                    }}
+                  >
+                    <div
+                      id={socket.id}
+                      style={{
+                        border: "solid 1px red",
+                        margin: "1rem",
+                        cursor: "pointer",
+                      }}
+                      onClick={handleThrow}
+                    >
+                      <p>PlayDeck</p>
+                    </div>
+                    {user.playedDeck.map((card, index) =>
+                      <button
+                        id={card.id}
+                        key={index}
+                        style={{
+                          backgroundColor: `${card.color}`,
+                          color: "#FFFFFF",
+                        }}
+                        className={index == 0 ? 'topPlayer' : ''}
+                        disabled={!yourTurn}
+                        onClick={handleThrow}
+                      >
+                        {card.tipo}
+                      </button>
+                    )}
+                    <b key={index}>{user.name}</b>
+                  </div>
+                )
+              }
+              return;
+            })
+          }
+        </div>
 
       </div>
-    </div>
+    </>
 
   );
 }
