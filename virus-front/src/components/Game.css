@@ -1,3 +1,74 @@
 .topPlayer {
     width: 100%;
 }
+
+:root {
+    --deck: #5130B0;
+}
+
+.gameCard {
+    height: 9rem;
+    width: fit-content;
+    object-fit: contain;
+    background-color: #ffffff00;
+    border: none;
+    transform: translate(0px, 0px);
+    padding: 0;
+    margin: 0.5rem;
+    transition: all 0.1s ease-in-out;
+    border-radius: 0.5rem;
+}
+.gameCard:focus {
+    outline: solid 0.25rem white;
+}
+
+.gameCard.left {
+    transform: rotate(343deg) translate(0px, 15px);
+}
+.gameCard.right {
+    transform: rotate(17deg) translate(0px, 15px);
+}
+.gameCard.left:hover {
+    transform: rotate(343deg) translate(0px, 0px)!important;
+}
+.gameCard.right:hover {
+    transform: rotate(17deg) translate(0px, 0px)!important;
+}
+.gameCard:hover {
+    transform: translate(0px, -10px)!important;
+}
+
+.gameCard img:hover {
+    cursor: pointer;
+}
+
+.gameCard img {
+    height: 100%;
+}
+
+.myCards {
+    position: fixed;
+    bottom: -2rem;
+    left: 50%;
+    right: 50%;
+    transform: translate(-50%, 0);
+    width: 35rem;
+    height: 20rem;
+    border-radius: 2rem;
+    background-color: var(--deck);
+    border: solid 1rem var(--strokes);
+}
+
+.deck {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.playedDeck {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 1rem;
+    height: 9rem;
+}

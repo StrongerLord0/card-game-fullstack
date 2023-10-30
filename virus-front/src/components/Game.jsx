@@ -1,6 +1,9 @@
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../context/UserContext";
 
+import './Game.css';
+import { Card } from "./Game/Card";
+
 export const Game = () => {
   const { user, setUser, socket } = useContext(UserContext);
 
@@ -46,56 +49,28 @@ export const Game = () => {
 
   return (
     <>
-
       <div
-        style={{
-          position: "fixed",
-          bottom: "0",
-          left: "0",
-          width: "calc(100% - 2rem)",
-          margin: "1rem",
-        }}
+        className="myCards"
       >
         <div
           id="myCards"
-          style={{
-            border: "solid 1px green",
-            margin: "1rem",
-            cursor: "pointer",
-            width: "calc(100% - 2rem)",
-          }}
           onClick={handleThrow}
+          className="playDeck"
         >
-          <h3>Mis cartas</h3>
-          {playedDeck.map((card, index) =>
-            <button
-              id={card.id}
-              key={index}
-              style={{
-                backgroundColor: `${card.color}`,
-                color: "#000000",
-              }}
-              disabled={!yourTurn}
-              onClick={handlePlayedCard}
-            >
-              {card.tipo}
-            </button>
-          )}
+          <div
+            className="playedDeck"
+          >
+            {playedDeck.map((card, index) =>
+              <Card card={card} yourTurn={yourTurn} handlePlayedCard={handlePlayedCard} index={index} />
+            )}
+          </div>
         </div>
-        <div>
-          {deck.map((card, index) =>
-            <button
-              id={card.id}
-              key={index}
-              style={{
-                backgroundColor: `${card.color}`,
-                color: "#000000",
-              }}
-              disabled={!yourTurn}
-              onClick={handlePlayedCard}
-            >
-              {card.tipo}
-            </button>
+        <div
+          className="deck"
+        >
+          {deck.map((card, index) => {
+            return <Card card={card} yourTurn={yourTurn} handlePlayedCard={handlePlayedCard} index={index} left={index == 0} right={index == 2} shadow/>
+          }
           )}
 
         </div>
@@ -119,7 +94,9 @@ export const Game = () => {
                 left: "50%",
                 right: "50%",
                 transform: "translate(-50%, 0)",
-                width: 'fit-content'
+                display: "flex",
+                width: 'fit-content',
+                transform: "rotate(180deg)",
               } : {};
               if (index % 2 != 0) {
                 return (
@@ -127,6 +104,8 @@ export const Game = () => {
                     style={{
                       border: "solid 1px red",
                       margin: "1rem",
+                      transform: "rotate(90deg)",
+                      display: "flex",
                       ...firstPlayer,
                     }}
                   >
@@ -142,19 +121,7 @@ export const Game = () => {
                       <p>PlayDeck</p>
                     </div>
                     {user.playedDeck.map((card, index) =>
-                      <button
-                        id={card.id}
-                        key={index}
-                        style={{
-                          backgroundColor: `${card.color}`,
-                          color: "#FFF",
-                        }}
-                        className={index == 0 ? 'topPlayer' : ''}
-                        disabled={!yourTurn}
-                        onClick={handleThrow}
-                      >
-                        {card.tipo}
-                      </button>
+                      <Card card={card} yourTurn={yourTurn} handlePlayedCard={handlePlayedCard} index={index} />
                     )}
                     <b key={index}>{user.name}</b>
                   </div>
@@ -198,6 +165,7 @@ export const Game = () => {
               if (index % 2 == 0) {
                 return (
                   <div
+                  className="myCards"
                     style={{
                       border: "solid 1px red",
                       margin: "1rem",
@@ -210,26 +178,21 @@ export const Game = () => {
                         border: "solid 1px red",
                         margin: "1rem",
                         cursor: "pointer",
+                        display: "flex",
                       }}
                       onClick={handleThrow}
                     >
                       <p>PlayDeck</p>
                     </div>
-                    {user.playedDeck.map((card, index) =>
-                      <button
-                        id={card.id}
-                        key={index}
-                        style={{
-                          backgroundColor: `${card.color}`,
-                          color: "#FFFFFF",
-                        }}
-                        className={index == 0 ? 'topPlayer' : ''}
-                        disabled={!yourTurn}
-                        onClick={handleThrow}
-                      >
-                        {card.tipo}
-                      </button>
-                    )}
+                    <div
+                      style={{
+                        display: 'flex'
+                      }}
+                    >
+                      {user.playedDeck.map((card, index) =>
+                        <Card card={card} yourTurn={yourTurn} handlePlayedCard={handlePlayedCard} index={index} />
+                      )}
+                    </div>
                     <b key={index}>{user.name}</b>
                   </div>
                 )
