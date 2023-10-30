@@ -40,10 +40,10 @@ const mazoVirus = [
     ...Array(4).fill({ id: generateUniqueID(), tipo: "medicina", color: "#0000FF" }),
     ...Array(4).fill({ id: generateUniqueID(), tipo: "medicina", color: "#FFFF00" }),
     ...Array(4).fill({ id: generateUniqueID(), tipo: "medicina", color: "#FFFFFF" }),
-    ...Array(3).fill({ id: generateUniqueID(), tipo: "tratamiento", nombre: "Trasplante", color: "#F000F0"  }),
-    ...Array(3).fill({ id: generateUniqueID(), tipo: "tratamiento", nombre: "Ladrón de órganos", color: "#F000F0"  }),
-    ...Array(2).fill({ id: generateUniqueID(), tipo: "tratamiento", nombre: "Contagio", color: "#F000F0"  }),
-    { id: generateUniqueID(), tipo: "tratamiento", nombre: "Guante de látex", color: "#F000F0"  },
+    ...Array(3).fill({ id: generateUniqueID(), tipo: "tratamiento", nombre: "Trasplante", color: "#F000F0" }),
+    ...Array(3).fill({ id: generateUniqueID(), tipo: "tratamiento", nombre: "Ladrón de órganos", color: "#F000F0" }),
+    ...Array(2).fill({ id: generateUniqueID(), tipo: "tratamiento", nombre: "Contagio", color: "#F000F0" }),
+    { id: generateUniqueID(), tipo: "tratamiento", nombre: "Guante de látex", color: "#F000F0" },
     { id: generateUniqueID(), tipo: "tratamiento", nombre: "Error médico", color: "#F000F0" },
 ];
 
@@ -160,7 +160,7 @@ io.on('connection', (socket) => {
             room.deck.splice(room.deck.findIndex(card => card.id === randomCard.id), 1);
             const turnIndex = room.users.findIndex(user => user.id === socket.id);
             const turn = turnIndex < room.users.length - 1 ? room.users[turnIndex + 1].id : room.users[0].id;
-            checkGame(playedCard, user, room);  
+            checkGame(playedCard, user, room);
             io.to("room" + room.id).emit('cardThrown', playedCard, destination, turn, room.users);
             io.to(user.id).emit('turnEnded', user, room);
         }
@@ -219,39 +219,67 @@ io.on('connection', (socket) => {
             console.log(`${user.name} ha ganado el juego!`);
         }
 
-        if (user.playedDeck.filter(card => card.tipo === "virus").map(card => card.color).some(color => user.playedDeck.filter(card => card.tipo === "medicina").map(medicina => medicina.color).includes(color))){
+        if (user.playedDeck.filter(card => card.tipo === "virus").map(card => card.color).some(color => user.playedDeck.filter(card => card.tipo === "medicina").map(medicina => medicina.color).includes(color))) {
             // Encuentra los colores que coinciden
             const matchingColors = user.playedDeck.filter(card => card.tipo === "virus").map(card => card.color).filter(color => user.playedDeck.filter(card => card.tipo === "medicina").map(medicina => medicina.color).includes(color));
-        
+
             // Para cada color que coincide, elimina la carta de virus y medicina del mazo del jugador y añádelas al mazo de la sala
             matchingColors.forEach(color => {
                 const virusIndex = user.playedDeck.findIndex(card => card.tipo === "virus" && card.color === color);
                 // Elimina las cartas del mazo del jugador
                 const virusCard = user.playedDeck.splice(virusIndex, 1)[0];
-                
+
                 const medicineIndex = user.playedDeck.findIndex(card => card.tipo === "medicina" && card.color === color);
                 const medicineCard = user.playedDeck.splice(medicineIndex, 1)[0];
-        
+
                 // Añade las cartas al mazo de la sala
                 room.deck.push(virusCard, medicineCard);
             });
         }
+    
+        const cartasVirus = user.playedDeck.filter(card => card.tipo === 'virus');
 
-        if(user.playedDeck.filter(card=> card.tipo === 'virus').map(card => card.color).length === 2){
-            const matchingCards = user.playedDeck.filter(card => card.tipo === "virus").map(card => card.color).filter(color => user.playedDeck.filter(card => card.tipo === "órgano").map(organo => organo.color).includes(color));
-            
-            matchingCards.forEach(color => {
-                const virusIndex = user.playedDeck.findIndex(card => card.tipo === "virus" && card.color === color);
-                // Elimina las cartas del mazo del jugador
-                const virusCard = user.playedDeck.splice(virusIndex, 1)[0];
-                
-                const organIndex = user.playedDeck.findIndex(card => card.tipo === "órgano" && card.color === color);
-                const organCard = user.playedDeck.splice(organIndex, 1)[0];
-        
-                // Añade las cartas al mazo de la sala
-                room.deck.push(virusCard, organCard);
-            });
+const hasTwoVirusCardsOfSameColor = () => {
+    const conteo = {};
+    
+    // Recorre las cartas de virus para contar los colores
+    for (const card of cartasVirus) {
+        const color = card.color;
+        conteo[color] ? conteo[color]++ : (conteo[color] = 1);
+    }
+
+    // Verifica si hay al menos dos cartas con el mismo color
+    for (const repeticiones in conteo) {
+        if (conteo[repeticiones] >= 2) {
+            return true;
         }
+    }
+
+    return false;
+}
+
+if (hasTwoVirusCardsOfSameColor()) {
+    const matchingCards = user.playedDeck.filter(card => card.tipo === "virus").map(card => card.color).filter(color => user.playedDeck.filter(card => card.tipo === "órgano").map(organo => organo.color).includes(color));
+    console.log("Movimiento naranja: " + matchingCards);
+    matchingCards.forEach(color => {
+        const virusCards = user.playedDeck.filter(card => card.tipo === "virus" && card.color === color);
+        if (virusCards.length === 2) {
+            // Elimina las cartas del mazo del jugador
+            virusCards.forEach(virusCard => {
+                const virusIndex = user.playedDeck.findIndex(card => card.id === virusCard.id);
+                user.playedDeck.splice(virusIndex, 1);
+                // Añade las cartas al mazo de la sala
+                room.deck.push(virusCard);
+            });
+
+            const organIndex = user.playedDeck.findIndex(card => card.tipo === "órgano" && card.color === color);
+            const organCard = user.playedDeck.splice(organIndex, 1)[0];
+            // Añade la carta de órgano al mazo de la sala
+            room.deck.push(organCard);
+        }
+    });
+}
+
 
 
         // //Eliminar virus y medicina del mismo color
