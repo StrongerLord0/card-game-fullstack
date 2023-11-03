@@ -1,6 +1,25 @@
 import deckCards from "../../helpers/cards";
+import backCard from "../../assets/Cards/back_big.png"
+export const Card = ({ card, yourTurn, handlePlayedCard = null, index = 0, shadow, left, right, back }) => {
+    console.log(card);
 
-export const Card = ({ card, yourTurn, handlePlayedCard, index, shadow, left, right }) => {
+    if (back)
+        return (
+            (<button
+                key={index}
+                className={`gameCard ${left ? "left" : ""} ${right ? "right" : ""}`}
+                disabled
+            >
+                {<img
+                    style={{
+                        filter: shadow ? "drop-shadow(0px 0px 15px rgba(0, 0, 0, 0.35))" : "",
+                    }}
+                    src={backCard} alt=""
+                />
+                }
+            </button>)
+        )
+
     return (
         (<button
             id={card.id}
@@ -9,9 +28,9 @@ export const Card = ({ card, yourTurn, handlePlayedCard, index, shadow, left, ri
             disabled={!yourTurn}
             onClick={handlePlayedCard}
         >
-            {card.tipo != "tratamiento" && <img
+            {<img
                 style={{
-                    filter: shadow ? "drop-shadow(0px 0px 5px rgba(0, 0, 0, 0.35))" : "",
+                    filter: shadow ? "drop-shadow(0px 0px 15px rgba(0, 0, 0, 0.35))" : "",
                 }}
                 src={deckCards.find(deckCard => deckCard.color == card.color && deckCard.tipo == card.tipo).img} alt=""
             />

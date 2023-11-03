@@ -18,6 +18,14 @@ import healRed from '../assets/Cards/healRed_big.png';
 import ronaRed from '../assets/Cards/ronaRed_big.png';
 import organRed from '../assets/Cards/organRed_big.png';
 
+import starChangeAll from '../assets/Cards/starChangeAll_big.png';
+import starChangeOne from '../assets/Cards/starChangeOne_big.png';
+import starDrop from '../assets/Cards/starDrop_big.png';
+import starSneeze from '../assets/Cards/starSneeze_big.png';
+import starSteal from '../assets/Cards/starSteal_big.png';
+
+
+
 const cards = [
     {
         tipo: 'órgano',
@@ -93,6 +101,31 @@ const cards = [
         tipo: 'virus',
         color: '#FFFFFF',
         img: superRona
+    },
+    {
+        tipo: 'tratamiento',
+        color: '#F000F0',
+        img: starChangeAll
+    },
+    {
+        tipo: 'tratamiento',
+        color: '#F000F0',
+        img: starChangeOne
+    },
+    {
+        tipo: 'tratamiento',
+        color: '#F000F0',
+        img: starDrop
+    },
+    {
+        tipo: 'tratamiento',
+        color: '#F000F0',
+        img: starSneeze
+    },
+    {
+        tipo: 'tratamiento',
+        color: '#F000F0',
+        img: starSteal
     }
 ];
 

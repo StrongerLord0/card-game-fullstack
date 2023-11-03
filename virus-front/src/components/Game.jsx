@@ -3,6 +3,7 @@ import { UserContext } from "../context/UserContext";
 
 import './Game.css';
 import { Card } from "./Game/Card";
+import { Deck } from "./Game/Deck";
 
 export const Game = () => {
   const { user, setUser, socket } = useContext(UserContext);
@@ -11,6 +12,7 @@ export const Game = () => {
   const [playedCard, setPlayedCard] = useState(null);
   const [deck, setDeck] = useState(user.deck);
   const [playedDeck, setPlayedDeck] = useState([]);
+  const [trashCards, setTrashCards] = useState([]); // [{card, destination}
   const [users, setUsers] = useState(user.room.users);
 
 
@@ -19,6 +21,9 @@ export const Game = () => {
 
     socket.on('cardThrown', (card, destination, turn, users) => {
       console.log("Se jugó la carta:", card, "hacia", destination, ", ahora es turno de", turn, "y yo soy", socket.id);
+      if(destination == "basurero") {
+        setTrashCards(trashCards => [...trashCards, card])
+      }
       setUsers(users);
       if (turn == socket.id) {
         setYourTurn(true);
@@ -31,7 +36,6 @@ export const Game = () => {
       setDeck(user.deck);
       setPlayedDeck(user.playedDeck);
     });
-
   }, []);
 
   const handlePlayedCard = (event) => {
@@ -69,7 +73,7 @@ export const Game = () => {
           className="deck"
         >
           {deck.map((card, index) => {
-            return <Card card={card} yourTurn={yourTurn} handlePlayedCard={handlePlayedCard} index={index} left={index == 0} right={index == 2} shadow/>
+            return <Card card={card} yourTurn={yourTurn} handlePlayedCard={handlePlayedCard} index={index} left={index == 0} right={index == 2} shadow />
           }
           )}
 
@@ -80,51 +84,18 @@ export const Game = () => {
         style={{
           display: "flex",
           width: "100%",
-          height: "100%",
+          minHeight: "100%",
+          height: "fit-content",
           alignItems: "center",
           justifyContent: "space-between",
         }}
       >
-        <div>
+        <div className="sideContainer">
           {
             users.filter(player => player.id != socket.id).map((user, index) => {
-              const firstPlayer = index == 0 ? {
-                position: "fixed",
-                top: "0",
-                left: "50%",
-                right: "50%",
-                transform: "translate(-50%, 0)",
-                display: "flex",
-                width: 'fit-content',
-                transform: "rotate(180deg)",
-              } : {};
               if (index % 2 != 0) {
                 return (
-                  <div
-                    style={{
-                      border: "solid 1px red",
-                      margin: "1rem",
-                      transform: "rotate(90deg)",
-                      display: "flex",
-                      ...firstPlayer,
-                    }}
-                  >
-                    <div
-                      id={socket.id}
-                      style={{
-                        border: "solid 1px red",
-                        margin: "1rem",
-                        cursor: "pointer",
-                      }}
-                      onClick={handleThrow}
-                    >
-                      <p>PlayDeck</p>
-                    </div>
-                    {user.playedDeck.map((card, index) =>
-                      <Card card={card} yourTurn={yourTurn} handlePlayedCard={handlePlayedCard} index={index} />
-                    )}
-                    <b key={index}>{user.name}</b>
-                  </div>
+                  <Deck user={user} index={index} handlePlayedCard={handlePlayedCard} handleThrow={handleThrow} yourTurn={yourTurn} left/>
                 )
               }
               return;
@@ -134,7 +105,6 @@ export const Game = () => {
         <div
           id="basurero"
           style={{
-            border: "solid 1px black",
             margin: "1rem",
             cursor: "pointer",
             width: "10rem",
@@ -142,59 +112,25 @@ export const Game = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            position: "absolute",
+            bottom: "50%",
+            left: "50%",
+            transform: "translate(-50%, 50%)",
           }}
           onClick={handleThrow}
         >
-          <h3>Basurero</h3>
+          {
+            trashCards.length > 0 ?
+              <Card card={trashCards[trashCards.length - 1]} yourTurn={false} left />
+            : <p>Basurero</p>
+          }
         </div>
-        <div
-          style={{
-
-          }}
-        >
+        <div className="sideContainer">
           {
             users.filter(player => player.id != socket.id).map((user, index) => {
-              const firstPlayer = index == 0 ? {
-                position: "fixed",
-                top: "0",
-                left: "50%",
-                right: "50%",
-                transform: "translate(-50%, 0)",
-                width: 'fit-content'
-              } : {};
               if (index % 2 == 0) {
                 return (
-                  <div
-                  className="myCards"
-                    style={{
-                      border: "solid 1px red",
-                      margin: "1rem",
-                      ...firstPlayer,
-                    }}
-                  >
-                    <div
-                      id={socket.id}
-                      style={{
-                        border: "solid 1px red",
-                        margin: "1rem",
-                        cursor: "pointer",
-                        display: "flex",
-                      }}
-                      onClick={handleThrow}
-                    >
-                      <p>PlayDeck</p>
-                    </div>
-                    <div
-                      style={{
-                        display: 'flex'
-                      }}
-                    >
-                      {user.playedDeck.map((card, index) =>
-                        <Card card={card} yourTurn={yourTurn} handlePlayedCard={handlePlayedCard} index={index} />
-                      )}
-                    </div>
-                    <b key={index}>{user.name}</b>
-                  </div>
+                  <Deck user={user} index={index} handlePlayedCard={handlePlayedCard} handleThrow={handleThrow} yourTurn={yourTurn} right/>
                 )
               }
               return;

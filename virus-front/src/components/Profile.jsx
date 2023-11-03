@@ -6,13 +6,19 @@ import { UserContext } from '../context/UserContext';
 
 export const Profile = () => {
     const [color, setColor] = useState('#ffae00');
+    const [avatar, setAvatar] = useState(0);
 
     const { user, setUser, socket } = useContext(UserContext);
 
     console.log(color);
 
-    const handleSetUsername = () => {
-        socket.emit('setUsername', user.name);
+    const handleSetUser = () => {
+        socket.emit('setUser', user);
+    }
+
+    const handleColorSelection = (color) => {
+        setColor(color.hex);
+        setUser({ ...user, color: color.hex });
     }
 
     return (
@@ -27,7 +33,8 @@ export const Profile = () => {
                     boxShadow: "0 0 0rem 4px #00000024",
                     transition: "all 0.2s ease-in-out",
                 }}
-                src={avatars[0]} alt="" />
+                onClick={() => setAvatar(avatar => (avatar + 1) % avatars.length)}
+                src={avatars[avatar]} alt="" />
 
             <div
                 style={{
@@ -42,7 +49,7 @@ export const Profile = () => {
             >
                 <CirclePicker
                     color={color}
-                    onChangeComplete={(color) => setColor(color.hex)}
+                    onChangeComplete={handleColorSelection}
                 />
             </div>
             <input
@@ -58,7 +65,7 @@ export const Profile = () => {
                 }}
                 onChange={(e) => setUser({ ...user, name: e.target.value })}
             />
-            <button className='secondary' style={{ marginTop: '1rem' }} onClick={handleSetUsername}>Guardar</button>
+            <button className='secondary' style={{ marginTop: '1rem' }} onClick={handleSetUser}>Guardar</button>
         </div>
     )
 }

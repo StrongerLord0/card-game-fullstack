@@ -62,10 +62,15 @@ app.get('/room', (req, res) => {
 io.on('connection', (socket) => {
     console.log(`Usuario conectado: ${socket.id}`);
 
-    connectedUsers[socket.id] = socket.id;
+    connectedUsers[socket.id] = {
+        id: socket.id,
+        name: socket.id,
+        avatar: 0,
+        color: '#ffae00'
+    };
 
-    socket.on('setUsername', (username) => {
-        connectedUsers[socket.id] = username;
+    socket.on('setUser', (user) => {
+        connectedUsers[socket.id] = {...user, id: socket.id};
         console.log(socket.id, 'ahora es', username);
     });
 
@@ -77,7 +82,7 @@ io.on('connection', (socket) => {
             createdBy: socket.id
         };
         rooms.push(room);
-        console.log(`Sala creada por ${connectedUsers[socket.id]}: ${room}`);
+        console.log(`Sala creada por ${connectedUsers[socket.id].name}: ${room}`);
         io.emit('createRoom', room);
         io.to(socket.id).emit('createdRoom', room);
     });
@@ -85,12 +90,12 @@ io.on('connection', (socket) => {
     socket.on('joinRoom', (id) => {
         if (!rooms[id].users.map(user => user.id).includes(socket.id)) {
             rooms[id].users.push({
+                ...connectedUsers[socket.id],
                 id: socket.id,
-                name: connectedUsers[socket.id],
                 playedDeck: [],
                 deck: []
             });
-            console.log(`${connectedUsers[socket.id]} se ha unido a la sala ${(rooms[id].id)}`);
+            console.log(`${connectedUsers[socket.id].name} se ha unido a la sala ${(rooms[id].id)}`);
         }
 
         socket.join("room" + id);
@@ -99,8 +104,8 @@ io.on('connection', (socket) => {
     });
 
     socket.on('sendMessage', ({ message, room }) => {
-        console.log(`Mensaje de ${connectedUsers[socket.id]} recibido en la sala ${room.id}: ${message}`);
-        const messageObject = { message, user: connectedUsers[socket.id] };
+        console.log(`Mensaje de ${connectedUsers[socket.id].name} recibido en la sala ${room.id}: ${message}`);
+        const messageObject = { message, user: connectedUsers[socket.id].name };
         io.to("room" + room.id).emit('recievedMessage', messageObject);
     });
 
