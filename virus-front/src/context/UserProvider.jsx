@@ -3,7 +3,7 @@ import { UserContext } from "./UserContext"
 
 export const UserProvider = ({ children }) => {
 
-    const [user, setUser] = useState({ name: '', rooms: [{users: []}]});
+    const [user, setUser] = useState({ name: '', avatar: 0, color:'#ffae00', rooms: [{users: []}]});
     const [socket, setSocket] = useState(null);
 
     return (

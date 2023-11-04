@@ -70,8 +70,8 @@ io.on('connection', (socket) => {
     };
 
     socket.on('setUser', (user) => {
+        console.log(connectedUsers[socket.id].name, 'ahora es', user.name);
         connectedUsers[socket.id] = {...user, id: socket.id};
-        console.log(socket.id, 'ahora es', username);
     });
 
     socket.on('createRoom', (name) => {

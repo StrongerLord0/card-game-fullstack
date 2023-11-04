@@ -86,7 +86,6 @@ export const Game = () => {
           width: "100%",
           minHeight: "100%",
           height: "fit-content",
-          alignItems: "center",
           justifyContent: "space-between",
         }}
       >
@@ -115,13 +114,13 @@ export const Game = () => {
             position: "absolute",
             bottom: "50%",
             left: "50%",
-            transform: "translate(-50%, 50%)",
+            transform: "translate(-61%, 50%) rotate(90deg)",
           }}
           onClick={handleThrow}
         >
           {
             trashCards.length > 0 ?
-              <Card card={trashCards[trashCards.length - 1]} yourTurn={false} left />
+              <Card card={trashCards[trashCards.length - 1]} yourTurn={false}/>
             : <p>Basurero</p>
           }
         </div>

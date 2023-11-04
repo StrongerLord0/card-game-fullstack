@@ -21,6 +21,11 @@ export const Profile = () => {
         setUser({ ...user, color: color.hex });
     }
 
+    const handleAvatarSelection = () => {
+        setAvatar(avatar => (avatar + 1) % avatars.length);
+        setUser({ ...user, avatar: ((avatar + 1) % avatars.length) });
+    }
+
     return (
         <div className="card animate__animated animate__bounceIn" style={{ width: '25%' }}>
             <img className='doodles' src={doodles} alt="" />
@@ -33,7 +38,7 @@ export const Profile = () => {
                     boxShadow: "0 0 0rem 4px #00000024",
                     transition: "all 0.2s ease-in-out",
                 }}
-                onClick={() => setAvatar(avatar => (avatar + 1) % avatars.length)}
+                onClick={handleAvatarSelection}
                 src={avatars[avatar]} alt="" />
 
             <div
