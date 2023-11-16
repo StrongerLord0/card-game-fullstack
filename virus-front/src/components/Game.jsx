@@ -24,6 +24,9 @@ export const Game = () => {
       if(destination == "basurero") {
         setTrashCards(trashCards => [...trashCards, card])
       }
+      if(destination == socket.id){
+        setPlayedDeck(playedDeck => [...playedDeck, card])
+      }
       setUsers(users);
       if (turn == socket.id) {
         setYourTurn(true);
