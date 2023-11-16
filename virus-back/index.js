@@ -156,8 +156,9 @@ io.on('connection', (socket) => {
         const room = rooms.find(room => !!room.users.find(user => user.id === socket.id));
         const user = room.users.find(user => user.id === socket.id);
 
-        if (destination === 'myCards' && rules(playedCard, user)) {
-            user.playedDeck.push(playedCard);
+        if (room.users.find(user=> user.id === destination) && rules(playedCard, room.users.find(user=> user.id === destination))) {
+            const afectedUser = room.users.find(user => user.id == destination);
+            afectedUser.playedDeck.push(playedCard);
             const deleted = user.deck.splice(user.deck.findIndex(card => card.id === playedCard.id), 1);
             console.log("deleted:", deleted);
             const randomCard = room.deck[Math.floor(Math.random() * room.deck.length)];
@@ -166,11 +167,12 @@ io.on('connection', (socket) => {
             const turnIndex = room.users.findIndex(user => user.id === socket.id);
             const turn = turnIndex < room.users.length - 1 ? room.users[turnIndex + 1].id : room.users[0].id;
             checkGame(playedCard, user, room);
+            checkGame(playedCard, afectedUser, room);
             io.to("room" + room.id).emit('cardThrown', playedCard, destination, turn, room.users);
             io.to(user.id).emit('turnEnded', user, room);
         }
-
-        if (destination === 'basurero') {
+        
+        else if (destination === 'basurero') {
             // Agrega la carta a jugar al mazo disponible (deck)
             room.deck.push(playedCard);
             // Quita la carta del dueño
