@@ -57,7 +57,7 @@ export const Game = () => {
         className="myCards"
       >
         <div
-          id="myCards"
+          id={socket.id}
           onClick={handleThrow}
           className="playDeck"
         >
