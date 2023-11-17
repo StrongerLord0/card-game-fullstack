@@ -173,6 +173,7 @@ io.on('connection', (socket) => {
         }
         
         else if (destination === 'basurero') {
+            const afectedUser = room.users.find(user => user.id == destination);
             // Agrega la carta a jugar al mazo disponible (deck)
             room.deck.push(playedCard);
             // Quita la carta del dueño
@@ -186,11 +187,20 @@ io.on('connection', (socket) => {
             const turnIndex = room.users.findIndex(user => user.id === socket.id);
             const turn = turnIndex < room.users.length - 1 ? room.users[turnIndex + 1].id : room.users[0].id;
             checkGame(playedCard, user, room);
+            checkGame(playedCard, afectedUser, room);
             io.to("room" + room.id).emit('cardThrown', playedCard, destination, turn, room.users);
             io.to(user.id).emit('turnEnded', user, room);
         }
 
     });
+
+    /**
+     * Cosas pendientes
+     *  - Actualizar clientes cuando se les elimina un órgano, no se muestra hasta la próxima iteración
+     *  - Lógica de comodines
+     *      - TODO
+     * @returns 
+     */
 
     function rules(playedCard, user) {
         // Verificar que el usuario no tenga el órgano en su playedDeck
@@ -200,12 +210,18 @@ io.on('connection', (socket) => {
         else if (playedCard.tipo === 'medicina' || playedCard.tipo === 'virus') {
             // Verificar que el usuario tenga un órgano del mismo color
             const hasMatchingOrgan = user.playedDeck.some(card => card.tipo === 'órgano' && card.color === playedCard.color);
-
             // Verificar la cantidad máxima de cartas del mismo tipo (medicina o virus)
-            const hasTwoCardsOfSameColor = user.playedDeck.filter(card => (card.color === playedCard.color) && (card.tipo === playedCard.tipo)).length < 2 ? true : false;
+            const hasTwoCardsOfSameColor = user.playedDeck.filter(card => (card.color === playedCard.color) && (card.tipo === playedCard.tipo)).length < 2;
+            const hasTwoMedicinesOfSameColor = user.playedDeck.filter(card => card.tipo === 'medicina' && card.color === playedCard.color).length < 2;
+            console.log(hasMatchingOrgan);
+            console.log(!hasTwoCardsOfSameColor);
 
-            if (hasMatchingOrgan && hasTwoCardsOfSameColor) {
+            if (playedCard.tipo === 'medicina' && hasMatchingOrgan && hasTwoCardsOfSameColor) {
                 // Movimiento válido, el usuario tiene un órgano del mismo color y no excede la cantidad máxima de cartas del mismo tipo.
+                return true;
+            }
+            
+            else if(playedCard.tipo === 'virus' && hasMatchingOrgan && hasTwoMedicinesOfSameColor) {
                 return true;
             }
 
